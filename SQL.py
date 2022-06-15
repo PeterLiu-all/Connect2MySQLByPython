@@ -1,12 +1,13 @@
-import pymysql
-import pandas as pd
 import re
 from configparser import ConfigParser
+
+import pandas as pd
+import pymysql
 from colorama import Fore, Back, Style
 
 
 class SQL_Connect:
-    def __init__(self, filename: str = "test.sql", config:str = "config.ini") -> None:
+    def __init__(self, filename: str = "test.sql", config: str = "config.ini") -> None:
         self.db = pymysql.NULL
         self.dfSet = []
         self.collabel = []
@@ -31,6 +32,16 @@ class SQL_Connect:
                   ''')
         self.sql_list = []
         self.toSqlList()
+        print(Fore.CYAN + Style.DIM)
+        print('''
+ ______                            __ ___   __  ___     _____ ____    __ 
+  / ____/___  ____  ____  ___  _____/ /|__ \ /  |/  /_  _/ ___// __ \  / / 
+ / /   / __ \/ __ \/ __ \/ _ \/ ___/ __/_/ // /|_/ / / / |__ \/ / / / / /  
+/ /___/ /_/ / / / / / / /  __/ /__/ /_/ __// /  / / /_/ /__/ / /_/ / / /___
+\____/\____/_/ /_/_/ /_/\___/\___/\__/____/_/  /_/\__, /____/\___\_\/_____/
+                                                 /____/                    
+              ''')
+        print(Style.RESET_ALL)
 
     def readConfig(self, cfgFile: str = "config.ini", title: str = "Default"):
         self.cfgFile = cfgFile
@@ -90,6 +101,8 @@ class SQL_Connect:
 
     def reset(self):
         self.results.clear()
+        self.dfSet.clear()
+        self.collabel.clear()
         self.to_send = ""
         self.sql_list.clear()
 
