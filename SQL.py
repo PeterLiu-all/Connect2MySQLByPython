@@ -6,7 +6,7 @@ from colorama import Fore, Back, Style
 
 
 class SQL_Connect:
-    def __init__(self, filename: str = "test.sql") -> None:
+    def __init__(self, filename: str = "test.sql", config:str = "config.ini") -> None:
         self.db = pymysql.NULL
         self.dfSet = []
         self.collabel = []
@@ -16,7 +16,7 @@ class SQL_Connect:
         self.user = "root"
         self.passwd = "123456"
         self.charset = "utf8"
-        self.cfgFile = "config.ini"
+        self.cfgFile = config
         self.options = ("host", "port", "user", "passwd", "charset")
         try:
             with open(filename, "r") as f:
