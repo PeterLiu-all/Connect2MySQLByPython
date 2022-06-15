@@ -1,0 +1,2 @@
+# Connect2MySQLByPython
+通过python连接MySQL，使用pymysql
