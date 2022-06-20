@@ -139,7 +139,10 @@ class SQL_Connect:
         """
         self.cfgFile = cfgFile
         cfg: ConfigParser = ConfigParser()
-        cfg.read(self.cfgFile)
+        try:
+            cfg.read(self.cfgFile)
+        except FileNotFoundError:
+            print("未找到配置文件！")
         cfg_list = cfg[title]
         self.__host = cfg_list["host"]
         self.__port = int(cfg_list["port"])
@@ -165,13 +168,16 @@ class SQL_Connect:
     def Connect2Server(self) -> None:
         """数据库连接
         """
-        self.__db = pymysql.Connect(
-            host=self.__host,
-            port=self.__port,
-            user=self.__user,
-            passwd=self.__passwd,
-            charset=self.__charset
-        )
+        try:
+            self.__db = pymysql.Connect(
+                host=self.__host,
+                port=self.__port,
+                user=self.__user,
+                passwd=self.__passwd,
+                charset=self.__charset
+            )
+        except:
+            print("无法连接服务器！")
 
     def toSqlList(self) -> None:
         """将sql语句转换为以;为分隔的列表
