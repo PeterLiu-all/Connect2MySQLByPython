@@ -42,17 +42,6 @@ class SQL_Connect:
                   ''')
         self.sql_list: List[str] = []
         self.toSqlList()
-        # 打印logo
-        print(Fore.CYAN + Style.DIM)
-        print('''
- ______                            __ ___   __  ___     _____ ____    __ 
-  / ____/___  ____  ____  ___  _____/ /|__ \ /  |/  /_  _/ ___// __ \  / / 
- / /   / __ \/ __ \/ __ \/ _ \/ ___/ __/_/ // /|_/ / / / |__ \/ / / / / /  
-/ /___/ /_/ / / / / / / /  __/ /__/ /_/ __// /  / / /_/ /__/ / /_/ / / /___
-\____/\____/_/ /_/_/ /_/\___/\___/\__/____/_/  /_/\__, /____/\___\_\/_____/
-                                                 /____/                    
-              ''')
-        print(Style.RESET_ALL)
         self.__attrs: Tuple = (
             "__db", "dfSet", "collabel", "_results",
             "__host", "__port", "__user", "__passwd", "__charset", "cfgFile",
@@ -203,12 +192,59 @@ class SQL_Connect:
         self.collabel.clear()
         self._to_send = ""
         self.sql_list.clear()
-
-    def conn_mysql(self) -> List[pd.DataFrame]:
+    def uploadConfig2MySQL(self, title:str = "Default")->List[pd.DataFrame]:
+        # 如果当前用户没有权限，则使用GRANT ALL PRIVILEGES ON *.* TO `{username}`@`localhost`;
+        # username是当前用户名
+        port = str(self.__port)
+        to_update = [
+            "CREATE DATABASE IF NOT EXISTS `Cnt2MySQL_Config`;",
+            "USE `Cnt2MySQL_Config`;",
+            f"DROP TABLE IF EXISTS `Config_{title}`  ",
+            f'''
+            CREATE TABLE `Config_{title}`  (
+                `id` int(10) NOT NULL AUTO_INCREMENT,
+                `options` varchar(50) NOT NULL DEFAULT '',
+                `value` varchar(50) NOT NULL DEFAULT '',
+                PRIMARY KEY (`id`)
+            ) ENGINE=INNODB DEFAULT CHARSET = utf8;
+            ''',
+            f'''
+            INSERT INTO `Config_{title}` ( `options`, `value` )
+                       VALUES
+                       ("host", "{self.__host}"),
+                       ("port", "{port}"),
+                       ("user", "{self.__user}"),
+                       ("password", "{self.__passwd}"),
+                       ("charset", "{self.__charset}");
+            '''
+                         ]
+        return self.conn_mysql(to_update)
+        
+    def downloadConfig(self, file_name:str = "config.ini")->None:
+        to_download = [
+            "USE `Cnt2MySQL_Config`;",
+            "SHOW TABLES;"
+        ]
+        with open(file_name, "w") as f:
+            for chart in self.conn_mysql(to_download)[-1].to_numpy():
+                chart_name:str = chart[0]
+                tmp_set = self.conn_mysql([
+                    "USE `Cnt2MySQL_Config`;",
+                    f"SELECT `options`, `value` FROM {chart_name}"
+                    ])[-1].to_numpy()
+                title = chart_name.split("_")[-1]
+                f.write(f"[{title}]\n")
+                for i in range(len(tmp_set)):
+                    f.write(f"{self.__options[i]}:{tmp_set[i][0]}\n")
+                f.write("\n")
+       
+    def conn_mysql(self, sql_list:List[str]) -> List[pd.DataFrame]:
         """连接数据库并获取结果
 
         Returns:
             List[pd.DataFrame]: 所有结果的DataFrame表示的列表
+        Args:
+            sql_list (List[str]): 要执行的语句
         """
         try:
             self.Connect2Server()
@@ -222,7 +258,7 @@ class SQL_Connect:
         pat: re.Pattern = re.compile(r"(^(\n)*--(.*))|(^\n$)")
         self.dfSet.clear()
         # 拆分成多个单句，一句一句执行
-        for idx in self.sql_list:
+        for idx in sql_list:
             if idx is not None:
                 if len(idx) >= 2 and re.match(pat, idx) is not None:
                     continue
