@@ -21,14 +21,16 @@ git clone https://github.com/PeterLiu-all/Connect2MySQLByPython.git
 bash start.sh
 # 如果是Windows系统，就手动操作
 python setup.py build && python setup.py install
+# 或者直接pip install .
 # 可以直接使用test.py直接检测是否安装成功
 python test.py
 ```
 ```python
-from Cnt2MySQL import SQL,transform
+from Cnt2MySQL import SQL_Connect, Transformer
+
 
 # filename是你自己的sql文件名
-sql_obj = SQL.SQL_Connect("test.sql")
+sql_obj = SQL_Connect("test.sql")
 # title是你的服务器配置名
 sql_obj.readConfig(title="Default")
 # 连接了之后自动打印
@@ -46,7 +48,7 @@ sql_obj.conn_mysql()
 
 ```python
 # 在连接并获取SQL语句执行结果后
-trf = transform.Transformer(sql_obj.dfSet)
+trf = Transformer(sql_obj.dfSet)
 trf.to_markdown()
 ```
 
