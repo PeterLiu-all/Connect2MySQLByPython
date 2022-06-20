@@ -16,3 +16,4 @@ build/
 __pycache__/
 Cnt2MySQL.egg-info/
 .mypy_cache/
+config.ini.tmp
