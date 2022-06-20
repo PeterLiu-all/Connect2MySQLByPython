@@ -94,26 +94,6 @@ class SQL_Connect:
         """
         return len(self.sql_list)
 
-    def __eq__(self, __o: Union["SQL_Connect", object]) -> bool:
-        """
-        比较两个变量
-        如果不是同一类型，返回False
-        如果所有属性都相同，才返回True
-
-        Args:
-            __o (Union[SQL_Connect, object]): 比较的对象
-
-        Returns:
-            bool: 比较结果
-        """
-        if type(self) != type(__o):
-            return False
-        jud: bool = True
-        for atr_name in self.__attrs:
-            if getattr(__o, atr_name) != getattr(self, atr_name):
-                return False
-        return jud
-
     def __getitem__(self, key: str) -> Optional[Union[str, int, List, pymysql.Connection, pd.DataFrame]]:
         """
         通过方括号获取属性
@@ -124,7 +104,7 @@ class SQL_Connect:
         Returns:
             Optional[Union[str, int, List, pymysql.Connection, pd.DataFrame]]: 返回属性
         """
-        if key in self.__real_attrs:
+        if key not in self.__real_attrs:
             print(f"没有{key}这个属性！")
             return None
         else:

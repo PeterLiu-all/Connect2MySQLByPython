@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
     long_description = f.read()
 setup(
     name="Cnt2MySQL",
-    version="1.14",
+    version="1.15",
     author="PeterLiu",
     author_email="peterliuforever@gmail.com",
     description="Easier way to connect to MySQL by Python",
