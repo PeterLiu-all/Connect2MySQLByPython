@@ -1,5 +1,6 @@
 import re
 from configparser import ConfigParser
+from typing import List
 
 import pandas as pd
 import pymysql
@@ -30,7 +31,7 @@ class SQL_Connect:
                     self.sql_list = []
                     self.toSqlList()
                   ''')
-        self.sql_list = []
+        self.sql_list:List = []
         self.toSqlList()
         print(Fore.CYAN + Style.DIM)
         print('''

@@ -10,3 +10,8 @@
 
 # Built Visual Studio Code Extensions
 *.vsix
+
+dist/
+build/
+__pycache__/
+Cnt2MySQL.egg-info/

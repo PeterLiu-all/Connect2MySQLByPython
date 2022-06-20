@@ -1,10 +1,11 @@
+from typing import List
 import pandas
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 
 class Transformer:
-    def __init__(self, dataframes: list[pandas.DataFrame], name: str = "transform") -> None:
+    def __init__(self, dataframes: List[pandas.DataFrame], name: str = "transform") -> None:
         self.dataframes = dataframes
         self.name = name
 

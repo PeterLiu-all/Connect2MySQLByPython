@@ -1,5 +1,4 @@
-import SQL
-import transform
+from Cnt2MySQL import SQL,transform
 
 # filename是你自己的sql文件名
 sql_obj = SQL.SQL_Connect("test.sql")
