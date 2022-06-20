@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
     long_description = f.read()
 setup(
     name="Cnt2MySQL",
-    version="1.11",
+    version="1.12",
     author="PeterLiu",
     author_email="peterliuforever@gmail.com",
     description="Easier way to connect to MySQL by Python",
@@ -13,7 +13,7 @@ setup(
     license="GPL",
     url="https://github.com/PeterLiu-all/Connect2MySQLByPython",
     data_files=["start.sh", "test.py", "test.sql", "config.ini"],
-    py_modules=["Cnt2MySQL.SQL", "Cnt2MySQL.transform"],
+    packages=["Cnt2MySQL"],
     install_requires=[
         'colorama',
         'matplotlib',
