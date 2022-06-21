@@ -15,7 +15,8 @@ git clone https://github.com/PeterLiu-all/Connect2MySQLByPython.git
 
 ## 使用方法
 
-### 建议先使用setup.py安装
+### 建议先使用 setup.py 安装
+
 ```bash
 # 如果是Linux系统，可以直接运行start.sh
 bash start.sh
@@ -25,6 +26,7 @@ python setup.py build && python setup.py install
 # 可以直接使用test.py直接检测是否安装成功
 python test.py
 ```
+
 ```python
 from Cnt2MySQL import SQL_Connect, Transformer
 
@@ -55,13 +57,17 @@ trf.to_markdown()
 也可以直接在 test.py 测试
 
 ## 自定义服务器配置
-config.ini在没有特别使用文件名指定的时候，默认路径为当前路径
+
+config.ini 在没有特别使用文件名指定的时候，默认路径为当前路径
 假设配置文件在./cfg/文件夹下，创建对象时就传入文件名为：
+
 ```python
 # 注意Windows的分隔符不一样
 sql_obj = SQL.SQL_Connect("test.sql", config="cfg/config.ini")
 ```
-配置config.ini
+
+配置 config.ini
+
 ```Plain
 [Default]
 host:127.0.0.1
@@ -70,7 +76,9 @@ user:root
 passwd:123456
 charset:utf8
 ```
-这里的默认设置是大部分用户的默认设置，如果不想更改默认设置，就在下方加上自己的设置，并且在读取配置时改变传入的title参数
+
+这里的默认设置是大部分用户的默认设置，如果不想更改默认设置，就在下方加上自己的设置，并且在读取配置时改变传入的 title 参数
+
 ```Plain
 [myconfig]
 host:127.0.0.1
@@ -79,16 +87,33 @@ user:PeterLiu
 passwd:123456
 charset:utf8
 ```
+
 读取配置时：
+
 ```python
 sql_obj.readConfig(title="myconfig")
 ```
 
-## 将配置保存在本地MySQL数据库中
+## 将配置保存在本地 MySQL 数据库中
+
 test.py:
+
 ```python
 # 上传当前配置
 sql_obj.uploadConfig2MySQL()
 # 下载数据库中全部配置
 sql_obj.downloadConfig("config.ini.tmp")
 ```
+
+## 异步提交 SQL 语句
+
+使用 asyncio 实现异步（其实性能并没有提升太多）
+
+```python
+loop = asyncio.get_event_loop()
+loop.run_until_complete(sql_obj.conn_mysql_async(sql_list))
+```
+
+方法 con_mysql_async 和原本的 conn_mysql 参数列表相同
+
+具体可以查看 test_async.py

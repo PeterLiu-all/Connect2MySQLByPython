@@ -9,8 +9,11 @@ sql_obj.readConfig(title="Default")
 # 请在config.ini中配置你的MySQL服务器
 sql_obj.conn_mysql(sql_obj.sql_list)
 
+# 在连接并获取SQL语句执行结果后
 trf = Transformer(sql_obj.dfSet)
-trf.to_html()
+trf.to_markdown()
 
-# sql_obj.uploadConfig2MySQL()
-# sql_obj.downloadConfig("config.ini.tmp")
+# 上传当前配置
+sql_obj.uploadConfig2MySQL()
+# 下载数据库中全部配置
+sql_obj.downloadConfig("config.ini.tmp")

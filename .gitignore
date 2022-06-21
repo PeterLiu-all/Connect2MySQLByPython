@@ -17,5 +17,6 @@ __pycache__/
 Cnt2MySQL.egg-info/
 .mypy_cache/
 config.ini.tmp
-transform*.*
+transform*
 *.css
+.pytest_cache/

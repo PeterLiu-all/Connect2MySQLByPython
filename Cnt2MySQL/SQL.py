@@ -5,6 +5,7 @@ from typing import List, Sequence, Tuple, Union, Optional
 import pandas as pd
 import pymysql
 from colorama import Fore, Back, Style
+import asyncio
 
 
 class SQL_Connect:
@@ -42,6 +43,9 @@ class SQL_Connect:
                   ''')
         self.sql_list: List[str] = []
         self.toSqlList()
+        self.cursor = None
+        # 正则表达式，消除语句中的注释
+        self.__comment_pat:re.Pattern = re.compile(r"(^(\n)*--(.*))|(^\n$)")
         self.__attrs: Tuple = (
             "__db", "dfSet", "collabel", "_results",
             "__host", "__port", "__user", "__passwd", "__charset", "cfgFile",
@@ -113,11 +117,7 @@ class SQL_Connect:
         except FileNotFoundError:
             print("未找到配置文件！")
         cfg_list = cfg[title]
-        self.__host = cfg_list["host"]
-        self.__port = int(cfg_list["port"])
-        self.__user = cfg_list["user"]
-        self.__passwd = cfg_list["passwd"]
-        self.__charset = cfg_list["charset"]
+        self.__host, self.__port, self.__user, self.__passwd, self.__charset = cfg_list["host"],int(cfg_list["port"]),cfg_list["user"],cfg_list["passwd"],cfg_list["charset"]
 
     def changeConfig(self, cfgFile: str = "config.ini", title: str = "Default") -> None:
         """改变配置信息
@@ -251,7 +251,7 @@ class SQL_Connect:
                     f.write(f"{self.__options[i]}:{tmp_set[i][0]}\n")
                 f.write("\n")
        
-    def conn_mysql(self, sql_list:List[str]) -> List[pd.DataFrame]:
+    def conn_mysql(self, sql_list:List[str], if_print:bool = True) -> List[pd.DataFrame]:
         """连接数据库并获取结果
 
         Returns:
@@ -267,13 +267,11 @@ class SQL_Connect:
         assert self.__db is not None
         # 使用cursor()方法创建一个游标对象cursor
         cursor = self.__db.cursor()
-        # 正则表达式，消除语句中的注释
-        pat: re.Pattern = re.compile(r"(^(\n)*--(.*))|(^\n$)")
         self.dfSet.clear()
         # 拆分成多个单句，一句一句执行
         for idx in sql_list:
             if idx is not None:
-                if len(idx) >= 2 and re.match(pat, idx) is not None:
+                if len(idx) >= 2 and re.match(self.__comment_pat, idx) is not None:
                     continue
                 print(Fore.GREEN + Style.DIM)
                 print("sql_sentence:" + idx)
@@ -284,6 +282,42 @@ class SQL_Connect:
                 self.PrtResult(self._results[-1])
         # 关闭游标
         cursor.close()
+        # 提交事务
+        self.__db.commit()
+        # 关闭连接
+        self.__db.close()
+        return self.dfSet
+    async def __conn_mysql_async_inner(self, sentence:str):
+        assert self.cursor is not None
+        self.dfSet.clear()
+        if sentence is not None:
+            if len(sentence) >= 2 and re.match(self.__comment_pat, sentence) is not None:
+                return
+            print(Fore.GREEN + Style.DIM)
+            print("sql_sentence:" + sentence)
+            print(Style.RESET_ALL)
+            # 执行SQL
+            self.cursor.execute(sentence)
+            self._results.append(self.cursor.fetchall())
+            self.PrtResult(self._results[-1])
+        return self.cursor
+        
+    async def conn_mysql_async(self, sql_list:List[str]) -> List[pd.DataFrame]:
+        try:
+            self.Connect2Server()
+        except:
+            print("连接数据库出错！")
+            print("请调用self.Connect2Server()重试！")
+        assert self.__db is not None
+        # 使用cursor()方法创建一个游标对象cursor
+        self.cursor = self.__db.cursor()
+        tasks = [asyncio.create_task(self.__conn_mysql_async_inner(sentence)) for sentence in sql_list]
+        # await asyncio.gather(tasks)
+        for task in tasks:
+            await task
+        assert self.cursor is not None
+        # 关闭游标
+        self.cursor.close()
         # 提交事务
         self.__db.commit()
         # 关闭连接
