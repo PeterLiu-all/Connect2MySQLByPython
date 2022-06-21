@@ -133,6 +133,19 @@ class SQL_Connect:
             new: str = input(f"请输入[{title}]的{option}属性值:")
             cfg.set(title, "host",
                     new if new is not None else cfg[title][option])
+    
+    def changeServer(self):
+        self.__host = input("请输入服务器地址：")
+        tmp_port:str = input("请输入端口号：")
+        while not tmp_port.isdigit():
+            tmp_port = input("端口号必须为数字！请再次输入端口号：")
+        self.__port = int(tmp_port)
+        self.__user = input("请输入用户名：")
+        self.__passwd = input("请输入用户密码：")
+        tmp_passwd:str = input("请输入字符编码：(默认utf8请回车)")
+        self.__passwd = "utf8" if tmp_passwd == "" else tmp_passwd
+        self.Connect2Server()
+        
 
     def Connect2Server(self) -> None:
         """数据库连接

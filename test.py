@@ -10,7 +10,7 @@ sql_obj.readConfig(title="Default")
 sql_obj.conn_mysql(sql_obj.sql_list)
 
 trf = Transformer(sql_obj.dfSet)
-trf.to_markdown()
+trf.to_html()
 
-sql_obj.uploadConfig2MySQL()
-sql_obj.downloadConfig("config.ini.tmp")
+# sql_obj.uploadConfig2MySQL()
+# sql_obj.downloadConfig("config.ini.tmp")
