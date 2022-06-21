@@ -1,6 +1,5 @@
 from typing import Callable, Dict, List
 import pandas
-import mistune
 import os
 import re
 from matplotlib import pyplot as plt
