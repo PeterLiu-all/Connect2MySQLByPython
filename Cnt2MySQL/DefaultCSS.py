@@ -52,6 +52,7 @@ article_with_navi:str = """
 body{
     display: inline-flexbox;
     background-image: url(https://cdn.staticaly.com/gh/PeterLiu-all/image-hosting@master/20220708/aedrian-oR8z-NvZkOo-unsplash.mqg625zknmo.webp);
+    background-color: black;
     background-size: cover;
     height: fit-content;
     background-position: 20%;
