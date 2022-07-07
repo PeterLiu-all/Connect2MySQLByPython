@@ -6,6 +6,7 @@ import pandas as pd
 import pymysql
 from colorama import Fore, Back, Style
 import asyncio
+from Cnt2MySQL.display import into_html_sentence
 
 
 class SQL_Connect:
@@ -273,13 +274,16 @@ class SQL_Connect:
             if idx is not None:
                 if len(idx) >= 2 and re.match(self.__comment_pat, idx) is not None:
                     continue
-                print(Fore.GREEN + Style.DIM)
-                print("sql_sentence:" + idx)
-                print(Style.RESET_ALL)
+                if if_print:
+                    print(Fore.GREEN + Style.DIM)
+                    print("sql_sentence:" + idx)
+                    print(Style.RESET_ALL)
                 # 执行SQL
                 cursor.execute(idx)
                 self._results.append(cursor.fetchall())
-                self.PrtResult(self._results[-1])
+                if if_print:
+                    self.PrtResult(self._results[-1])
+        into_html_sentence(self._results, sql_list)
         # 关闭游标
         cursor.close()
         # 提交事务
@@ -287,22 +291,24 @@ class SQL_Connect:
         # 关闭连接
         self.__db.close()
         return self.dfSet
-    async def __conn_mysql_async_inner(self, sentence:str):
+    async def __conn_mysql_async_inner(self, sentence:str, if_print:bool = True):
         assert self.cursor is not None
         self.dfSet.clear()
         if sentence is not None:
             if len(sentence) >= 2 and re.match(self.__comment_pat, sentence) is not None:
                 return
-            print(Fore.GREEN + Style.DIM)
-            print("sql_sentence:" + sentence)
-            print(Style.RESET_ALL)
+            if if_print:
+                print(Fore.GREEN + Style.DIM)
+                print("sql_sentence:" + sentence)
+                print(Style.RESET_ALL)
             # 执行SQL
             self.cursor.execute(sentence)
             self._results.append(self.cursor.fetchall())
-            self.PrtResult(self._results[-1])
+            if if_print:
+                self.PrtResult(self._results[-1])
         return self.cursor
         
-    async def conn_mysql_async(self, sql_list:List[str]) -> List[pd.DataFrame]:
+    async def conn_mysql_async(self, sql_list:List[str], if_print: bool = True) -> List[pd.DataFrame]:
         try:
             self.Connect2Server()
         except:
@@ -311,10 +317,11 @@ class SQL_Connect:
         assert self.__db is not None
         # 使用cursor()方法创建一个游标对象cursor
         self.cursor = self.__db.cursor()
-        tasks = [asyncio.create_task(self.__conn_mysql_async_inner(sentence)) for sentence in sql_list]
+        tasks = [asyncio.create_task(self.__conn_mysql_async_inner(sentence, if_print)) for sentence in sql_list]
         # await asyncio.gather(tasks)
         for task in tasks:
             await task
+        into_html_sentence(self._results, sql_list)
         assert self.cursor is not None
         # 关闭游标
         self.cursor.close()

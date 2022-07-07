@@ -20,3 +20,4 @@ config.ini.tmp
 transform*
 *.css
 .pytest_cache/
+*tmp*
