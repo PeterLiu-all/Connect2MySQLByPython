@@ -19,7 +19,7 @@ URL = "https://github.com/PeterLiu-all/Connect2MySQLByPython"
 EMAIL = "peterliuforever@gmail.com"
 AUTHOR = 'PeterLiu'
 REQUIRES_PYTHON = '>=3.7.13'
-VERSION = '1.26'
+VERSION = '1.27'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
