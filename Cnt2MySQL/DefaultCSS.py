@@ -1,5 +1,9 @@
 
+"""
+本文件定义了查询结果网页的基本CSS样式
+"""
 
+# 标准默认样式
 Default_CSS:str = '''
     table{
         width: fit-content;
@@ -10,7 +14,7 @@ Default_CSS:str = '''
         background-color: rgba(255, 255, 255, 1);
         padding: 0;
         margin: auto;
-        border-width: 0;
+        border-width: 5px;
         outline-style: solid;
         outline-color: rgba(2, 2, 2, 0.7);
     }
@@ -48,6 +52,7 @@ Default_CSS:str = '''
 	}
         '''
 
+# 双栏样式
 article_with_navi:str = """
 body{
     display: inline-flexbox;

@@ -42,7 +42,7 @@ sql_obj.conn_mysql(sql_obj.sql_list)
 
 你也可以直接使用文件夹中的 test.py 进行测试
 
-## 将输出结果导出为其他格式
+### 将输出结果导出为其他格式
 
 本项目的 transform.py 提供了将表格导出为 markdown、PDF、png、HTML、csv、excel 的方法（多数为 pandas 的自带方法）
 
@@ -55,6 +55,19 @@ trf.to_markdown()
 ```
 
 也可以直接在 test.py 测试
+
+### 简易可视化
+本模块提供了建议可视化功能，在查询完毕后会自动打开默认浏览器查看MySQL语句与对应响应。
+
+![WebPage](page_show.png)
+
+产生的网页默认查看完毕后删除，如不想删除可以手动传入列表并将参数leave设为True
+```python
+into_html_sentence(sql_obj._results, sql_obj.sql_list, True)
+```
+
+同时，本模块提供了修改展示页面HTML/CSS/JSP的api接口，具体请阅读源码中函数下的说明
+
 
 ## 自定义服务器配置
 

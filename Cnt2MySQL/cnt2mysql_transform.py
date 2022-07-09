@@ -19,7 +19,15 @@ class Transformer:
         self.name: str = name
         self.pname: str = os.path.join(direc, name)
         self.direc: str = direc
-
+    @staticmethod
+    def clean_all(name: str = "transform", direc: str = ".") -> bool:
+        jud: bool = False
+        pat: re.Pattern = re.compile(name+r"[0-9]*\.(?!py)(.*)")
+        for f in os.listdir(direc):
+            if re.match(pat, f) is not None:
+                os.remove(os.path.join(direc, f))
+                jud = True
+        return jud
     def __NormalModule(self, func: Callable, ext: str) -> None:
         """模板
 
@@ -59,8 +67,9 @@ class Transformer:
     def to_html(self) -> None:
         def default_to_html(df:pandas.DataFrame, name:str):
             df.to_html(name)
+            # 设置CSS样式
             with open(name, "r") as f:
-                file_content = Default_CSS+f.read()
+                file_content = f"<style>\n{Default_CSS}</style>\n"+f.read()
             with open(name, "w") as f:
                 f.write(f"{file_content}\n\n")
         self.__NormalModule(default_to_html, ".html")
@@ -89,11 +98,4 @@ class Transformer:
         self.to_txt()
 
 
-def clean_all(name: str = "transform", direc: str = ".") -> bool:
-    jud: bool = False
-    pat: re.Pattern = re.compile(name+r"[0-9]*\.(?!py)(.*)")
-    for f in os.listdir(direc):
-        if re.match(pat, f) is not None:
-            os.remove(os.path.join(direc, f))
-            jud = True
-    return jud
+

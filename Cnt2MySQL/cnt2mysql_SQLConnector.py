@@ -6,7 +6,7 @@ import pandas as pd
 import pymysql
 from colorama import Fore, Back, Style
 import asyncio
-from Cnt2MySQL.display import into_html_sentence
+from Cnt2MySQL.cnt2mysql_display import into_html_sentence
 
 
 class SQL_Connect:

@@ -1,3 +1,9 @@
+
+"""
+本文件定义了查询结果网页的基本jsp脚本
+"""
+
+# 实时时间函数
 change_date = """
 function changeDate(jud, title){
     if(jud == true){
