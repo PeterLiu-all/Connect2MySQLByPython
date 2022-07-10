@@ -331,6 +331,7 @@ class SQL_Connect:
                     cursor.execute(idx)
                 except:
                     print("执行失败！请查看该句是否有语法错误！")
+                    self._results.append([])
                     continue
                 self._results.append(cursor.fetchall())
                 if if_print:
