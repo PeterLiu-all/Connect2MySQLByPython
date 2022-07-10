@@ -1,1 +1,1 @@
-include README.md LICENSE start.sh test* config.ini
+include README.md LICENSE start.sh test* config.ini *.png

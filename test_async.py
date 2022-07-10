@@ -10,15 +10,14 @@ sql_obj = SQL_Connect("test.sql")
 sql_obj.readConfig(title="Default")
 sql_list = sql_obj.sql_list*100
 # 无async
-start1:float = time.time()
-sql_obj.conn_mysql(sql_list)
-end1:float = time.time() - start1
+start1: float = time.time()
+sql_obj.commit_to_MySQL(sql_list)
+end1: float = time.time() - start1
 # 有async
-start2:float = time.time()
+start2: float = time.time()
 loop = asyncio.get_event_loop()
 loop.run_until_complete(sql_obj.conn_mysql_async(sql_list))
-end2:float = time.time() - start2
+end2: float = time.time() - start2
 # 打印时间
 print(f"NO ASYNC:{end1}")
 print(f"WITH ASYNC:{end2}")
-
