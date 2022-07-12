@@ -1,13 +1,15 @@
-from time import sleep
+from time import sleep, time
 import pandas as pd
 from typing import *
 import webbrowser
 import os
 import re
 from Cnt2MySQL.DefaultHTML import *
+from Cnt2MySQL.cnt2mysql_TimeKeeper import TimeKeeper
 
 # 网页框架设置器
 class WebPageSetter:
+    @TimeKeeper.time_keeper
     def __init__(self, col: int = 2, default_html: Sequence = [DefaultFrame_tail, DefaultFrame_head]):# 注意，default_html中tail在前
         """
         初始化设置器
@@ -21,7 +23,7 @@ class WebPageSetter:
         # 所有子框架的集合，第一个元素是整体文件头尾部
         self.file_content: List[Sequence] = [default_html]+[[] for _ in range(col)] 
         self.column_n:int = col
-
+    @TimeKeeper.time_keeper
     def set_CSS_style(self, CSS_style: str, outer_CSS_style: str = ""):
         """
         设置CSS样式
@@ -46,7 +48,7 @@ class WebPageSetter:
         if outer_CSS_style != "":
             pat2.sub(pat2.match(self.file_content[0][0]).group(
                 1), outer_CSS_style+"</head>")
-
+    @TimeKeeper.time_keeper
     def set_JS_script(self, JS_script: str, outer_JS_script: str = ""):
         """
         设置JS脚本
@@ -66,7 +68,7 @@ class WebPageSetter:
         if outer_JS_script != "":
             pat2.sub(pat2.match(self.file_content[0][0]).group(
                 1), outer_JS_script+"</head>")
-
+    @TimeKeeper.time_keeper
     def set_frame(self, head: str, tail: str, frame_to_set: int = 1):
         """
         初始化子框架头尾部
@@ -78,7 +80,7 @@ class WebPageSetter:
         """
         #将尾部放在首位
         self.file_content[frame_to_set] = [tail, head]
-
+    @TimeKeeper.time_keeper
     def add_to_frame(self, content: str, frame_to_add: int = 1, head: str = '', tail: str = ''):
         """
         在子框架中添加元素
@@ -90,7 +92,7 @@ class WebPageSetter:
             tail (str, optional): 内容的尾部. Defaults to ''.
         """
         self.file_content[frame_to_add].append(head + content + tail)
-
+    @TimeKeeper.time_keeper
     def write_into_html_file(self, filename: str = "tmp.html", mode: str = "w"):
         """
         写入HTML文档
@@ -105,8 +107,8 @@ class WebPageSetter:
                 # 尾部在首位，最后再加上
                 f.write(item[0])
 
-
-def set_table_content(table: Union[List, Tuple], table_content: List[str], header: str = ""):
+@TimeKeeper.time_keeper
+def set_table_content(table: Union[List, Tuple], table_content: List[str], header: str = "") ->float:
     """
     将二维列表转HTML表格
 
@@ -130,6 +132,8 @@ def set_table_content(table: Union[List, Tuple], table_content: List[str], heade
         table_content[-1] += ("\t"*level)+"</tr>\n"
         level -= 1
     table_content[-1] += ("\t"*level)+"</table>\n<br />\n"
+
+@TimeKeeper.time_keeper
 def into_html_sentence(tables: Union[List, Tuple], titles: Sequence,\
     display_file: str = "tmp.html", leave: bool = False):
     """
@@ -165,8 +169,11 @@ def into_html_sentence(tables: Union[List, Tuple], titles: Sequence,\
         webbrowser.open(os.path.abspath(display_file))
         # 如果函数传入参数leave=True，那么显示完结果后HTML文件不会删除
         if not leave:
+            start = time()
             input(f"按任意键删除{display_file}...")
+            end = time()
             os.remove(display_file)
+            TimeKeeper.delayed_time += end - start
     except:
         print("打开网页失败！")
         

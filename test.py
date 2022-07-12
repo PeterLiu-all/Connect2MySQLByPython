@@ -1,4 +1,4 @@
-from Cnt2MySQL import SQL_Connect, Transformer
+from Cnt2MySQL import SQL_Connect, Transformer, TimeKeeper
 import Cnt2MySQL
 
 
@@ -17,7 +17,8 @@ Transformer.clean_all()
 trf = Transformer(sql_obj.dfSet)
 trf.to_html()
 
-print(sql_obj.used_time)
+print(sql_obj.run_time)
+# TimeKeeper.calculate_used_time()
 
 # 上传当前配置
 # sql_obj.uploadConfig2MySQL()

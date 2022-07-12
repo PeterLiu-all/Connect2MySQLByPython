@@ -1,16 +1,18 @@
+from functools import wraps
 import re
 from configparser import ConfigParser
 from time import time
-from typing import List, Sequence, Tuple, Union, Optional
+from typing import Callable, List, Sequence, Tuple, Union, Optional
 
 import pandas as pd
 import pymysql
 from colorama import Fore, Back, Style
 import asyncio
 from Cnt2MySQL.cnt2mysql_display import into_html_sentence
-
+from Cnt2MySQL.cnt2mysql_TimeKeeper import TimeKeeper
 
 class SQL_Connect:
+    @TimeKeeper.time_keeper
     def __init__(self, filename: str = "test.sql", config: str = "config.ini") -> None:
         """初始化
 
@@ -18,7 +20,6 @@ class SQL_Connect:
             filename (str, optional): SQL文件名. Defaults to "test.sql".
             config (str, optional): 配置文件名. Defaults to "config.ini".
         """
-        self.start_time = time()
         self.__db: Optional[pymysql.Connection] = None
         self.dfSet: List[pd.DataFrame] = []
         self.collabel: List[Union[str, int]] = []
@@ -55,12 +56,13 @@ class SQL_Connect:
         self.__attrs: Tuple = (
             "__db", "dfSet", "collabel", "_results",
             "__host", "__port", "__user", "__passwd", "__charset", "cfgFile",
-            "__options", "_to_send", "sql_list"
+            "__options", "_to_send", "sql_list", "used_time"
         )
         self.__real_attrs: Tuple = (
-            "dfSet", "collabel", "_results", "cfgFile", "_to_send", "sql_list"
+            "dfSet", "collabel", "_results", "cfgFile", "_to_send", "sql_list", "used_time"
         )
 
+    @TimeKeeper.time_keeper
     def __str__(self) -> str:
         """__str__
         返回服务器配置信息
@@ -74,6 +76,7 @@ class SQL_Connect:
                 CharSet:{self.__charset}
               ''')
 
+    @TimeKeeper.time_keeper
     def __add__(self, apd: "SQL_Connect") -> "SQL_Connect":
         """__add__
         将两个SQL_Connect对象内的数据相加
@@ -85,6 +88,7 @@ class SQL_Connect:
         self.sql_list += apd.sql_list
         return self
 
+    @TimeKeeper.time_keeper
     def __len__(self) -> int:
         """
         返回SQL语句列表长度
@@ -94,6 +98,7 @@ class SQL_Connect:
         """
         return len(self.sql_list)
 
+    @TimeKeeper.time_keeper
     def __getitem__(self, key: str) -> Optional[Union[str, int, List, pymysql.Connection, pd.DataFrame]]:
         """
         通过方括号获取属性
@@ -110,6 +115,7 @@ class SQL_Connect:
         else:
             return getattr(self, key)
 
+    @TimeKeeper.time_keeper
     def readConfig(self, cfgFile: str = "config.ini", title: str = "Default") -> None:
         """读取配置文件
 
@@ -120,7 +126,7 @@ class SQL_Connect:
         self.cfgFile = cfgFile
         cfg: ConfigParser = ConfigParser()
         try:
-            cfg.read(self.cfgFile)    
+            cfg.read(self.cfgFile)
         except:
             print("未找到配置文件！")
             print("初始配置将自动设置为：")
@@ -136,6 +142,7 @@ class SQL_Connect:
             print(self)
             return
 
+    @TimeKeeper.time_keeper
     def changeConfig(self, cfgFile: str = "config.ini", title: str = "Default") -> None:
         """改变配置信息
 
@@ -155,13 +162,15 @@ class SQL_Connect:
         try:
             for option in self.__options:
                 new: str = input(f"请输入[{title}]的{option}属性值:")
-                cfg.set(title, "host", new if new is not None else cfg[title][option])
+                cfg.set(title, "host",
+                        new if new is not None else cfg[title][option])
         except:
             print("配置失败！")
             print("当前配置为：")
             print(self)
             return
 
+    @TimeKeeper.time_keeper
     def changeServer(self):
         self.__host = input("请输入服务器地址：")
         tmp_port: str = input("请输入端口号：")
@@ -174,6 +183,7 @@ class SQL_Connect:
         self.__passwd = "utf8" if tmp_passwd == "" else tmp_passwd
         self.Connect2Server()
 
+    @TimeKeeper.time_keeper
     def Connect2Server(self) -> None:
         """数据库连接
         """
@@ -191,6 +201,7 @@ class SQL_Connect:
             print("您当前的配置为:")
             print(self)
 
+    @TimeKeeper.time_keeper
     def toSqlList(self) -> None:
         """将sql语句转换为以;为分隔的列表
         """
@@ -199,6 +210,7 @@ class SQL_Connect:
         # 删除最后一个空字符串
         self.sql_list.pop()
 
+    @TimeKeeper.time_keeper
     def PrtResult(self, result: Sequence[Sequence]) -> None:
         """PrtResult
         对单条结果进行pandas的DataFrame转换并打印
@@ -216,6 +228,8 @@ class SQL_Connect:
                 df.set_index(['index'], inplace=True)
             self.dfSet.append(df)
             print(df)
+
+    @TimeKeeper.time_keeper
     def PrtAllResult(self, visualize: bool = True) -> None:
         """
         一次性打印所有结果
@@ -234,6 +248,7 @@ class SQL_Connect:
         if visualize:
             into_html_sentence(self._results, self.sql_list)
 
+    @TimeKeeper.time_keeper
     def reset(self) -> None:
         """重置所有输入输出（不含配置）
         """
@@ -242,11 +257,12 @@ class SQL_Connect:
         self.collabel.clear()
         self._to_send = ""
         self.sql_list.clear()
-        
-    @property
-    def used_time(self) -> str:
-        return f"used time: {time() - self.start_time}s"
 
+    @property
+    def run_time(self) -> str:
+        return TimeKeeper.calculate_used_time()
+
+    @TimeKeeper.time_keeper
     def uploadConfig2MySQL(self, title: str = "Default") -> List[pd.DataFrame]:
         # 如果当前用户没有权限，则使用GRANT ALL PRIVILEGES ON *.* TO `{username}`@`localhost`;
         # username是当前用户名
@@ -275,6 +291,7 @@ class SQL_Connect:
         ]
         return self.commit_to_MySQL(to_update)
 
+    @TimeKeeper.time_keeper
     def downloadConfig(self, file_name: str = "config.ini") -> None:
         to_download = [
             "USE `Cnt2MySQL_Config`;",
@@ -293,8 +310,9 @@ class SQL_Connect:
                     f.write(f"{self.__options[i]}:{tmp_set[i][0]}\n")
                 f.write("\n")
 
-    def commit_to_MySQL(self, sql_list: List[str], if_print: bool = True,\
-            clear_dfSet:bool = True, visualize: bool = True) -> List[pd.DataFrame]:
+    @TimeKeeper.time_keeper
+    def commit_to_MySQL(self, sql_list: List[str], if_print: bool = True,
+                        clear_dfSet: bool = True, visualize: bool = True) -> List[pd.DataFrame]:
         """连接数据库并获取结果
 
         Returns:
