@@ -5,11 +5,11 @@ import re
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from Cnt2MySQL.DefaultCSS import Default_CSS
-from Cnt2MySQL.cnt2mysql_TimeKeeper import TimeKeeper
+import Cnt2MySQL.cnt2mysql_TimeKeeper as tkp
 
 
 class Transformer:
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def __init__(self, dataframes: List[pandas.DataFrame], name: str = "transform", direc: str = ".") -> None:
         """初始化
 
@@ -22,9 +22,13 @@ class Transformer:
         self.name: str = name
         self.pname: str = os.path.join(direc, name)
         self.direc: str = direc
+        self.format_dict = {"html": self.to_html, "csv": self.to_csv,
+                            "img": self.to_img, "pdf": self.to_pdf, "txt": self.to_txt,
+                            "md": self.to_markdown, "excel": self.to_excel,
+                            "all": self.to_all}
 
     @staticmethod
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def clean_all(name: str = "transform", direc: str = ".") -> bool:
         jud: bool = False
         pat: re.Pattern = re.compile(name+r"[0-9]*\.(?!py)(.*)")
@@ -34,7 +38,7 @@ class Transformer:
                 jud = True
         return jud
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def __NormalModule(self, func: Callable, ext: str) -> None:
         """模板
 
@@ -46,7 +50,7 @@ class Transformer:
             df = self.dataframes[i]
             func(df, f"{self.pname}{i+1}"+ext)
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def to_pdf(self) -> None:
         for i in range(len(self.dataframes)):
             df = self.dataframes[i]
@@ -59,7 +63,7 @@ class Transformer:
             pp.savefig(fig, bbox_inches='tight')
             pp.close()
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def to_img(self) -> None:
         for i in range(len(self.dataframes)):
             df = self.dataframes[i]
@@ -70,11 +74,11 @@ class Transformer:
                                  colLabels=df.columns, loc='center')
             plt.savefig(f"{self.pname}{i}.png")
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def to_markdown(self) -> None:
         self.__NormalModule(pandas.DataFrame.to_markdown, ".md")
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def to_html(self) -> None:
         def default_to_html(df: pandas.DataFrame, name: str):
             df.to_html(name)
@@ -85,15 +89,15 @@ class Transformer:
                 f.write(f"{file_content}\n\n")
         self.__NormalModule(default_to_html, ".html")
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def to_csv(self) -> None:
         self.__NormalModule(pandas.DataFrame.to_csv, ".csv")
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def to_excel(self) -> None:
         self.__NormalModule(pandas.DataFrame.to_excel, ".xlsx")
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def to_txt(self) -> None:
         def write_to_txt(df: pandas.DataFrame, name: str):
             df_str: Dict = df.to_string()
@@ -101,7 +105,7 @@ class Transformer:
                 f.write(f"{df_str}\n\n")
         self.__NormalModule(write_to_txt, ".txt")
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def to_all(self) -> None:
         """转换为可用的所有格式
         """

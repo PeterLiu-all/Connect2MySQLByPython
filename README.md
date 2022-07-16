@@ -71,6 +71,25 @@ into_html_sentence(sql_obj._results, sql_obj.sql_list, True)
 
 同时，本模块提供了修改展示页面HTML/CSS/JSP的api接口，具体请阅读源码中函数下的说明
 
+## 交互式窗口
+本模块提供了基础的交互式窗口，可以通过python提交MySQL，可选择性可视化，在非安全模式下可以执行python语句\文件、执行shell命令等
+
+安装方法：
+```sh
+# 安装程序名为cnt2mysql
+# 在Linux下可以直接执行install.sh
+chmod +x install.sh
+./install.sh
+
+# 在其他平台可以运行python脚本安装
+# 注意，此方法需要安装Anaconda，因为涉及到虚拟环境的创建与删除
+python install_venv.py
+conda activate cnt2mysql
+python install.py
+conda remove -n cnt2mysql --all
+```
+
+交互式窗口的使用说明请使用cnt2mysql -h查看
 
 ## 自定义服务器配置
 

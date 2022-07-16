@@ -9,11 +9,12 @@ import pymysql
 from colorama import Fore, Back, Style
 import asyncio
 from Cnt2MySQL.cnt2mysql_display import into_html_sentence
-from Cnt2MySQL.cnt2mysql_TimeKeeper import TimeKeeper
+import Cnt2MySQL.cnt2mysql_TimeKeeper as tkp
 
-class SQL_Connect:
-    @TimeKeeper.time_keeper
-    def __init__(self, filename: str = "test.sql", config: str = "config.ini") -> None:
+
+class SQLConnect:
+    @tkp.time_keeper.time_monitor
+    def __init__(self, filename: str = "test.sql", with_file: bool = True) -> None:
         """初始化
 
         Args:
@@ -30,24 +31,25 @@ class SQL_Connect:
         self.__user: str = "root"
         self.__passwd: str = "123456"
         self.__charset: str = "utf8"
-        self.cfgFile: str = config
+        self.cfgFile: str = "config.ini"
         self.__options: Tuple = ("host", "port", "user", "passwd", "charset")
         self._to_send: str = ""
         # 读取SQL文件
-        try:
-            with open(filename, "r") as f:
-                self._to_send = "".join(f.readlines())
-        except:
-            print("打开sql文件出错！请按如下步骤重试")
-            print(f"或许您当前目录没有{filename}?")
-            print('''
-                    with open([filename], "r") as f:
-                        self._to_send = "".join(f.readlines())
-                    self.sql_list = []
-                    self.toSqlList()
-                  ''')
-            print("提交语句自动初始化为SHOW DATABASES;")
-            self._to_send = "SHOW DATABASES;"
+        if with_file:
+            try:
+                with open(filename, "r") as f:
+                    self._to_send = "".join(f.readlines())
+            except:
+                print("打开sql文件出错！请按如下步骤重试")
+                print(f"或许您当前目录没有{filename}?")
+                print('''
+                        with open([filename], "r") as f:
+                            self._to_send = "".join(f.readlines())
+                        self.sql_list = []
+                        self.toSqlList()
+                    ''')
+                print("提交语句自动初始化为SHOW DATABASES;")
+                self._to_send = "SHOW DATABASES;"
         self.sql_list: List[str] = []
         self.toSqlList()
         self.cursor = None
@@ -62,7 +64,7 @@ class SQL_Connect:
             "dfSet", "collabel", "_results", "cfgFile", "_to_send", "sql_list", "used_time"
         )
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def __str__(self) -> str:
         """__str__
         返回服务器配置信息
@@ -76,8 +78,8 @@ class SQL_Connect:
                 CharSet:{self.__charset}
               ''')
 
-    @TimeKeeper.time_keeper
-    def __add__(self, apd: "SQL_Connect") -> "SQL_Connect":
+    @tkp.time_keeper.time_monitor
+    def __add__(self, apd: "SQLConnect") -> "SQLConnect":
         """__add__
         将两个SQL_Connect对象内的数据相加
         """
@@ -88,7 +90,7 @@ class SQL_Connect:
         self.sql_list += apd.sql_list
         return self
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def __len__(self) -> int:
         """
         返回SQL语句列表长度
@@ -98,7 +100,7 @@ class SQL_Connect:
         """
         return len(self.sql_list)
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def __getitem__(self, key: str) -> Optional[Union[str, int, List, pymysql.Connection, pd.DataFrame]]:
         """
         通过方括号获取属性
@@ -115,7 +117,7 @@ class SQL_Connect:
         else:
             return getattr(self, key)
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def readConfig(self, cfgFile: str = "config.ini", title: str = "Default") -> None:
         """读取配置文件
 
@@ -141,8 +143,21 @@ class SQL_Connect:
             print("初始配置将自动设置为：")
             print(self)
             return
+        
+    @tkp.time_keeper.time_monitor
+    def manual_set_config(self, host: str = "127.0.0.1", port:int = 3306, user:str = "root", passwd:str = "123456", charset:str = "utf8")->None:
+        """手动设置配置
 
-    @TimeKeeper.time_keeper
+        Args:
+            host (str, optional): IP地址. Defaults to "127.0.0.1".
+            port (int, optional): 端口. Defaults to 3306.
+            user (str, optional): 用户名. Defaults to "root".
+            passwd (str, optional): 用户密码. Defaults to "123456".
+            charset (str, optional): 字符集. Defaults to "utf8".
+        """
+        self.__host, self.__port, self.__user, self.__passwd, self.__charset = host, port, user, passwd, charset
+    
+    @tkp.time_keeper.time_monitor
     def changeConfig(self, cfgFile: str = "config.ini", title: str = "Default") -> None:
         """改变配置信息
 
@@ -170,7 +185,7 @@ class SQL_Connect:
             print(self)
             return
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def changeServer(self):
         self.__host = input("请输入服务器地址：")
         tmp_port: str = input("请输入端口号：")
@@ -183,7 +198,7 @@ class SQL_Connect:
         self.__passwd = "utf8" if tmp_passwd == "" else tmp_passwd
         self.Connect2Server()
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def Connect2Server(self) -> None:
         """数据库连接
         """
@@ -201,7 +216,7 @@ class SQL_Connect:
             print("您当前的配置为:")
             print(self)
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def toSqlList(self) -> None:
         """将sql语句转换为以;为分隔的列表
         """
@@ -210,7 +225,7 @@ class SQL_Connect:
         # 删除最后一个空字符串
         self.sql_list.pop()
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def PrtResult(self, result: Sequence[Sequence]) -> None:
         """PrtResult
         对单条结果进行pandas的DataFrame转换并打印
@@ -229,7 +244,7 @@ class SQL_Connect:
             self.dfSet.append(df)
             print(df)
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def PrtAllResult(self, visualize: bool = True) -> None:
         """
         一次性打印所有结果
@@ -240,7 +255,7 @@ class SQL_Connect:
         if len(self._results) != len(self.sql_list):
             print("查询语句与查询结果长度不匹配！请检查您的代码！")
             return
-        for query, res in zip(self._results, self.sql_list):
+        for query, res in zip(self.sql_list, self.dfSet):
             print(Fore.BLUE + Style.DIM)
             print(query)
             print(Style.RESET_ALL)
@@ -248,7 +263,7 @@ class SQL_Connect:
         if visualize:
             into_html_sentence(self._results, self.sql_list)
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def reset(self) -> None:
         """重置所有输入输出（不含配置）
         """
@@ -260,9 +275,9 @@ class SQL_Connect:
 
     @property
     def run_time(self) -> str:
-        return TimeKeeper.calculate_used_time()
+        return tkp.time_keeper.calculate_used_time()
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def uploadConfig2MySQL(self, title: str = "Default") -> List[pd.DataFrame]:
         # 如果当前用户没有权限，则使用GRANT ALL PRIVILEGES ON *.* TO `{username}`@`localhost`;
         # username是当前用户名
@@ -291,7 +306,7 @@ class SQL_Connect:
         ]
         return self.commit_to_MySQL(to_update)
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def downloadConfig(self, file_name: str = "config.ini") -> None:
         to_download = [
             "USE `Cnt2MySQL_Config`;",
@@ -310,7 +325,7 @@ class SQL_Connect:
                     f.write(f"{self.__options[i]}:{tmp_set[i][0]}\n")
                 f.write("\n")
 
-    @TimeKeeper.time_keeper
+    @tkp.time_keeper.time_monitor
     def commit_to_MySQL(self, sql_list: List[str], if_print: bool = True,
                         clear_dfSet: bool = True, visualize: bool = True) -> List[pd.DataFrame]:
         """连接数据库并获取结果
@@ -364,7 +379,7 @@ class SQL_Connect:
         self.__db.close()
         return self.dfSet
 
-    async def __conn_mysql_async_inner(self, sentence: str, if_print: bool = True):
+    async def __commit_to_mysql_async_inner(self, sentence: str, if_print: bool = True):
         assert self.cursor is not None
         self.dfSet.clear()
         if sentence is not None:
@@ -381,7 +396,7 @@ class SQL_Connect:
                 self.PrtResult(self._results[-1])
         return self.cursor
 
-    async def conn_mysql_async(self, sql_list: List[str], if_print: bool = True) -> List[pd.DataFrame]:
+    async def commit_to_mysql_async(self, sql_list: List[str], if_print: bool = True) -> List[pd.DataFrame]:
         try:
             self.Connect2Server()
         except:
@@ -390,7 +405,7 @@ class SQL_Connect:
         assert self.__db is not None
         # 使用cursor()方法创建一个游标对象cursor
         self.cursor = self.__db.cursor()
-        tasks = [asyncio.create_task(self.__conn_mysql_async_inner(
+        tasks = [asyncio.create_task(self.__commit_to_mysql_async_inner(
             sentence, if_print)) for sentence in sql_list]
         # await asyncio.gather(tasks)
         for task in tasks:

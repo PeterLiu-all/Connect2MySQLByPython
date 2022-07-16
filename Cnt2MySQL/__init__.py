@@ -1,9 +1,10 @@
-from Cnt2MySQL.cnt2mysql_SQLConnector import SQL_Connect
+import os
+from Cnt2MySQL.cnt2mysql_SQLConnector import SQLConnect
 from Cnt2MySQL.cnt2mysql_transform import Transformer
 from Cnt2MySQL.cnt2mysql_display import into_html_sentence
-from Cnt2MySQL.cnt2mysql_TimeKeeper import TimeKeeper
+from Cnt2MySQL.cnt2mysql_interactive import InteractiveSQLConnect
 from colorama import Fore, Back, Style
-
+from sys import executable
 # 打印logo
 print(Fore.CYAN + Style.DIM)
 print('''
@@ -16,6 +17,5 @@ print('''
               ''')
 print(Style.RESET_ALL)
 
-import os
 print(f"目前工作目录为：{os.path.abspath(os.curdir)}")
-
+print(f"当前解释器地址：{executable}")

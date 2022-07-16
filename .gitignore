@@ -21,3 +21,4 @@ transform*
 *.css
 .pytest_cache/
 *tmp*
+*.spec
