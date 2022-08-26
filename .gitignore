@@ -22,3 +22,5 @@ transform*
 .pytest_cache/
 *tmp*
 *.spec
+
+.idea/
