@@ -8,7 +8,7 @@ import time
 # 初始化对象（不计入时间）
 sql_obj = SQLConnect("test.sql")
 sql_obj.readConfig(title="Default")
-sql_list = sql_obj.sql_list*100
+sql_list = sql_obj.sql_list * 100
 # 无async
 start1: float = time.time()
 sql_obj.commit_to_MySQL(sql_list)

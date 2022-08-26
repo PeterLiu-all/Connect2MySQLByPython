@@ -11,27 +11,30 @@ from os import popen
 import os
 from colorama import Fore, Back, Style
 
-VERSION = '1.3.2'     
-        
+VERSION = '1.3.2'
+
+
 class InteractiveSQLConnect(SQLConnect):
     """
     交互式窗口类，继承自SQLConnect
     Args:
         SQLConnect: 基本SQL连接类
     """
+
     @tkp.time_keeper.time_monitor
-    def __init__(self) -> None:
+    def __init__(self, opt_psr) -> None:
         """
         初始化交互式窗口对象
         """
         # 调用父级初始化（父级的私有变量无法用正常方法访问）
-        super().__init__("", with_file = False)
+        super().__init__("", with_file=False)
         # 对输入语句是否结束的分析正则表达式
         self.analyse_pat = re.compile(r"^[\s\S]*;(\n)*")
         # 非安全模式下的各种命令对应的函数
-        self.command_sentence_dict = {r"%f": self.exec_file,\
-            r"%out": self.output_table, r"%c": self.exec_command,\
-                r"%v": self.show_sql_stc, r"%p": self.insert_py}
+        self.command_sentence_dict = {r"%f": self.exec_file, \
+                                      r"%out": self.output_table, r"%c": self.exec_command, \
+                                      r"%v": self.show_sql_stc, r"%p": self.insert_py}
+        self.opt_psr = opt_psr
         # 清屏
         if system() == "Windows":
             os.system("cls")
@@ -42,7 +45,34 @@ class InteractiveSQLConnect(SQLConnect):
         print(f"interpreter: {executable}".center(70, "-"))
         print(f"version: {python_version()}".center(70, "-"))
         print("Welcome to Peter Liu's interactive Window!".center(70, "-"))
-    
+
+    @tkp.time_keeper.time_monitor
+    def Interactive_help(self):
+        # 定义帮助文字
+        desc: str = """
+        简易的MySQL语句执行交互式窗口
+        支持可视化，在非安全模式下支持执行python语句、shell命令等
+            """
+        epi: str = """
+        非安全模式下各种命令使用帮助：
+            ！！！注意，以下命令可能具有极大的安全隐患，请慎重决定是否开启非安全模式（默认开启）
+                %f:[文件名]支持.py、.sql文件，.py文件可以直接执行（不在当前进程），.sql文件则在当前进程中直接执行其语句，示例：%f: test.py | %f: test.sql
+                %out:[all|last 导出路径 文件格式（不带.）]将执行过的命令导出为各种格式（transform模块支持的格式），包括pdf,html,markdown,image等，示例：%out: all . html
+                %c:[shell命令]执行shell命令，示例：%c: clear
+                %v:[vl|nvl]显示已执行的语句，vl表示可视化显示，nvl表示仅打印，示例：%v: vl
+                %p:[python语句]在当前进程中执行python语句，示例：%p: print('Hello Cnt2MySQL!')
+            """
+
+        # 以不同颜色与格式打印帮助
+        print(Fore.MAGENTA + Style.BRIGHT)
+        print(desc)
+        print(Fore.BLUE + Style.BRIGHT)
+        self.opt_psr.print_help()
+        print(Style.RESET_ALL)
+        print(Fore.RED + Style.BRIGHT)
+        print(epi)
+        print(Style.RESET_ALL)
+
     @tkp.time_keeper.time_monitor
     def commit_to_MySQL(self, sql_sentence: str, if_print: bool = True) -> List[pd.DataFrame]:
         """
@@ -75,9 +105,9 @@ class InteractiveSQLConnect(SQLConnect):
         cursor.close()
         # 提交事务
         self._SQLConnect__db.commit()
-        
+
     @tkp.time_keeper.time_monitor
-    def analyse_sentence(self, sql_sentence:str)-> bool:
+    def analyse_sentence(self, sql_sentence: str) -> bool:
         """
         分析语句是否结束
 
@@ -86,12 +116,12 @@ class InteractiveSQLConnect(SQLConnect):
 
         Returns:
             bool: 是否结束
-        """ 
+        """
         if self.analyse_pat.match(sql_sentence) is None:
             return False
         else:
             return True
-        
+
     @tkp.time_keeper.time_monitor
     def launch_interactive(self, visualize: bool = True, unsafe: bool = False):
         """
@@ -104,9 +134,9 @@ class InteractiveSQLConnect(SQLConnect):
         # 再次确认是否开启非安全模式
         if unsafe:
             print(Fore.RED + Style.BRIGHT)
-            vrf:str = input("警告！你正在使用不安全的模式，可能会造成损失！请问是否继续？(Y|n)")
+            vrf: str = input("警告！你正在使用不安全的模式，可能会造成损失！请问是否继续？(Y|n)")
             print(Style.RESET_ALL)
-            if vrf != "Y": 
+            if vrf != "Y":
                 print("已退出！")
                 return
         # 连接数据库
@@ -116,22 +146,33 @@ class InteractiveSQLConnect(SQLConnect):
             print("连接数据库出错！")
             print("请调用Connect2Server()重试！")
         assert self._SQLConnect__db is not None
-        s = "" # 当前语句
+        s = ""  # 当前语句
+        quit_program = ["quit", "quit;", "q", "exit", "exit;"]
+        get_help = ["h", "help", "fxxk", "help;", "fxxk;"]
         while True:
             # 获取输入
             s: str = input(">>> ")
             # 是否为退出语句
-            if s in ["quit", "quit;", "exit", "exit;"]: break
+            order: str = s.strip()
+            if s in quit_program:
+                break
+            elif s in get_help:
+                try:
+                    self.Interactive_help()
+                    continue
+                except Exception as err:
+                    print(err)
+                    print("出错啦！")
             # 非安全模式
             if unsafe:
                 flag = False
                 # 检测是哪一个命令
                 for k in self.command_sentence_dict.keys():
                     pat = re.compile(f"^{k}:([\s\S]*)")
-                    pat_obj = pat.match(s) 
+                    pat_obj = pat.match(s)
                     if pat_obj is not None:
                         # 获取命令内容
-                        ctt:str = pat_obj.group(1)
+                        ctt: str = pat_obj.group(1)
                         ctt = ctt.strip()
                         # 命令内容不得为空
                         if ctt != "":
@@ -139,15 +180,31 @@ class InteractiveSQLConnect(SQLConnect):
                                 # 获取对应函数并执行
                                 self.command_sentence_dict[k](pat_obj.group(1))
                             except:
-                                print("\a"+f"出错了！请检查你的{k}命令语句！")
-                        else: print(f"{k}:空的内容！")
+                                print("\a" + f"出错了！请检查你的{k}命令语句！")
+                        else:
+                            print(f"{k}:空的内容！")
                         flag = True
                         break
                 # 使用了命令不当再提交到MySQL端
                 if flag: continue
             # 防止语句未完
+            flag: bool = False
             while self.analyse_sentence(s) == False:
-                s += input("... ")
+                tmp: str = input("... ")
+                order = tmp.strip()
+                if order in quit_program:
+                    flag = True
+                    break
+                elif order in get_help:
+                    try:
+                        self.Interactive_help()
+                    except Exception as err:
+                        print(err)
+                        print("出错啦！")
+                    break
+                else:
+                    s += tmp
+            if flag: break
             self.commit_to_MySQL(s, True)
         # farewell
         print("bye~~")
@@ -155,9 +212,9 @@ class InteractiveSQLConnect(SQLConnect):
         if visualize: into_html_sentence(self._results, self.sql_list)
         # 显示耗时
         print(tkp.time_keeper.calculate_used_time())
-        
+
     @tkp.time_keeper.time_monitor
-    def exec_file(self, fname:str):
+    def exec_file(self, fname: str):
         """
         执行sql文件语句或python文件
 
@@ -173,25 +230,26 @@ class InteractiveSQLConnect(SQLConnect):
             for stc in rsp:
                 print(stc.strip("\n"))
         elif splited_path[-1] == ".sql":
-            with open(fname) as f:
+            with open(fname, "r", encoding="UTF-8") as f:
                 lines = f.read().split(";")
                 for l in lines:
                     l = l.strip("\n")
                     if l == "": continue
                     l += ";"
-                    print(">>> "+l)
+                    print(">>> " + l)
                     self.commit_to_MySQL(l)
-        else: print("未知文件名！")
-        
+        else:
+            print("未知文件名！")
+
     @tkp.time_keeper.time_monitor
-    def output_table(self, opt:str):
+    def output_table(self, opt: str):
         """
         保存为其他格式
 
         Args:
             opt (str): 选项
         """
-        
+
         opt = opt.strip()
         if opt == "":
             print("recive nothing!")
@@ -208,28 +266,29 @@ class InteractiveSQLConnect(SQLConnect):
         if opt_set[0] == "all":
             # 全部输出
             trs = Transformer(self.dfSet, direc=opt_set[1])
-        else: 
+        else:
             # 只输出上一句
             trs = Transformer([self.dfSet[-1]], direc=opt_set[1])
         if opt_set[2] in trs.format_dict:
             # 调用相应输出函数
             trs.format_dict[opt_set[2]]()
-        else: trs.format_dict['html']()
-        
-    @tkp.time_keeper.time_monitor    
-    def exec_command(self, cmd:str):
+        else:
+            trs.format_dict['html']()
+
+    @tkp.time_keeper.time_monitor
+    def exec_command(self, cmd: str):
         """
         执行shell命令
 
         Args:
             cmd (str): shell命令
         """
-        rsp = popen(cmd) 
+        rsp = popen(cmd)
         for stc in rsp.readlines():
             print(stc)
-            
-    @tkp.time_keeper.time_monitor        
-    def insert_py(self, py_stc:str):
+
+    @tkp.time_keeper.time_monitor
+    def insert_py(self, py_stc: str):
         """
         执行python语句
 
@@ -237,8 +296,8 @@ class InteractiveSQLConnect(SQLConnect):
             py_stc (str): py语句
         """
         exec(py_stc.strip())
-        
-    @tkp.time_keeper.time_monitor    
+
+    @tkp.time_keeper.time_monitor
     def show_sql_stc(self, visualize: str = "vl"):
         """
         显示所有已经执行的sql语句
@@ -252,7 +311,7 @@ class InteractiveSQLConnect(SQLConnect):
             self.PrtAllResult(True)
         else:
             self.PrtAllResult(False)
-            
+
+
 if __name__ == "__main__":
     InteractiveSQLConnect.launch_interactive()
-        

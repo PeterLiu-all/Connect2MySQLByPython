@@ -37,6 +37,7 @@ class TimeKeeper:
             else:
                 res = func(*args, **kwargs)
             return res
+
         return wrapped_func
 
 

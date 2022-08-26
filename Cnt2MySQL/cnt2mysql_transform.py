@@ -31,7 +31,7 @@ class Transformer:
     @tkp.time_keeper.time_monitor
     def clean_all(name: str = "transform", direc: str = ".") -> bool:
         jud: bool = False
-        pat: re.Pattern = re.compile(name+r"[0-9]*\.(?!py)(.*)")
+        pat: re.Pattern = re.compile(name + r"[0-9]*\.(?!py)(.*)")
         for f in os.listdir(direc):
             if re.match(pat, f) is not None:
                 os.remove(os.path.join(direc, f))
@@ -48,7 +48,7 @@ class Transformer:
         """
         for i in range(len(self.dataframes)):
             df = self.dataframes[i]
-            func(df, f"{self.pname}{i+1}"+ext)
+            func(df, f"{self.pname}{i + 1}" + ext)
 
     @tkp.time_keeper.time_monitor
     def to_pdf(self) -> None:
@@ -83,10 +83,11 @@ class Transformer:
         def default_to_html(df: pandas.DataFrame, name: str):
             df.to_html(name)
             # 设置CSS样式
-            with open(name, "r") as f:
-                file_content = f"<style>\n{Default_CSS}</style>\n"+f.read()
-            with open(name, "w") as f:
+            with open(name, "r", encoding="UTF-8") as f:
+                file_content = f"<style>\n{Default_CSS}</style>\n" + f.read()
+            with open(name, "w", encoding="UTF-8") as f:
                 f.write(f"{file_content}\n\n")
+
         self.__NormalModule(default_to_html, ".html")
 
     @tkp.time_keeper.time_monitor
@@ -101,8 +102,9 @@ class Transformer:
     def to_txt(self) -> None:
         def write_to_txt(df: pandas.DataFrame, name: str):
             df_str: Dict = df.to_string()
-            with open(name, "w") as f:
+            with open(name, "w", encoding="UTF-8") as f:
                 f.write(f"{df_str}\n\n")
+
         self.__NormalModule(write_to_txt, ".txt")
 
     @tkp.time_keeper.time_monitor

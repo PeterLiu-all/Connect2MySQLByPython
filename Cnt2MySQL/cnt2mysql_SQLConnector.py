@@ -19,7 +19,6 @@ class SQLConnect:
 
         Args:
             filename (str, optional): SQL文件名. Defaults to "test.sql".
-            config (str, optional): 配置文件名. Defaults to "config.ini".
         """
         self.__db: Optional[pymysql.Connection] = None
         self.dfSet: List[pd.DataFrame] = []
@@ -33,43 +32,23 @@ class SQLConnect:
         self.__charset: str = "utf8"
         self.cfgFile: str = "config.ini"
         self.__options: Tuple = ("host", "port", "user", "passwd", "charset")
+        # 文件读写相关
         self._to_send: str = ""
-        # 读取SQL文件
-        if with_file:
-            try:
-                with open(filename, "r") as f:
-                    self._to_send = "".join(f.readlines())
-            except:
-                print("打开sql文件出错！请按如下步骤重试")
-                print(f"或许您当前目录没有{filename}?")
-                print('''
-                        with open([filename], "r") as f:
-                            self._to_send = "".join(f.readlines())
-                        self.sql_list = []
-                        self.toSqlList()
-                    ''')
-                print("提交语句自动初始化为SHOW DATABASES;")
-                self._to_send = "SHOW DATABASES;"
+        self.__with_file: bool = with_file
+        self.__filename: str = filename
+        self.__file_offset: int = 0
+        self.__big_file: bool = False
         self.sql_list: List[str] = []
-        self.toSqlList()
         self.cursor = None
         # 正则表达式，消除语句中的注释
         self.__comment_pat: re.Pattern = re.compile(r"(^(\n)*--(.*))|(^\n$)")
-        self.__attrs: Tuple = (
-            "__db", "dfSet", "collabel", "_results",
-            "__host", "__port", "__user", "__passwd", "__charset", "cfgFile",
-            "__options", "_to_send", "sql_list", "used_time"
-        )
-        self.__real_attrs: Tuple = (
-            "dfSet", "collabel", "_results", "cfgFile", "_to_send", "sql_list", "used_time"
-        )
 
     @tkp.time_keeper.time_monitor
     def __str__(self) -> str:
         """__str__
         返回服务器配置信息
         """
-        return(f'''
+        return (f'''
             服务器配置信息：（为安全起见，将不会显示密码）
             Host:{self.__host}
                 Port:{self.__port}
@@ -101,23 +80,6 @@ class SQLConnect:
         return len(self.sql_list)
 
     @tkp.time_keeper.time_monitor
-    def __getitem__(self, key: str) -> Optional[Union[str, int, List, pymysql.Connection, pd.DataFrame]]:
-        """
-        通过方括号获取属性
-
-        Args:
-            key (str): 属性名
-
-        Returns:
-            Optional[Union[str, int, List, pymysql.Connection, pd.DataFrame]]: 返回属性
-        """
-        if key not in self.__real_attrs:
-            print(f"没有{key}这个属性！")
-            return None
-        else:
-            return getattr(self, key)
-
-    @tkp.time_keeper.time_monitor
     def readConfig(self, cfgFile: str = "config.ini", title: str = "Default") -> None:
         """读取配置文件
 
@@ -143,9 +105,10 @@ class SQLConnect:
             print("初始配置将自动设置为：")
             print(self)
             return
-        
+
     @tkp.time_keeper.time_monitor
-    def manual_set_config(self, host: str = "127.0.0.1", port:int = 3306, user:str = "root", passwd:str = "123456", charset:str = "utf8")->None:
+    def manual_set_config(self, host: str = "127.0.0.1", port: int = 3306, user: str = "root", passwd: str = "123456",
+                          charset: str = "utf8") -> None:
         """手动设置配置
 
         Args:
@@ -156,7 +119,7 @@ class SQLConnect:
             charset (str, optional): 字符集. Defaults to "utf8".
         """
         self.__host, self.__port, self.__user, self.__passwd, self.__charset = host, port, user, passwd, charset
-    
+
     @tkp.time_keeper.time_monitor
     def changeConfig(self, cfgFile: str = "config.ini", title: str = "Default") -> None:
         """改变配置信息
@@ -221,9 +184,26 @@ class SQLConnect:
         """将sql语句转换为以;为分隔的列表
         """
         # 解析传进来的SQL脚本,sql脚本已';'结束
-        self.sql_list = self._to_send.split(';')
-        # 删除最后一个空字符串
-        self.sql_list.pop()
+        with open(self.__filename, "r", encoding="UTF-8") as f:
+            f.seek(self.__file_offset)
+            self._to_send = ""
+            tmp_pat = re.compile("^( )*$")
+            while True:
+                self._to_send += f.readline(1000)
+                self._to_send = self._to_send.strip("\n")
+                if self._to_send.strip(" ") == "":
+                    self.__big_file = False
+                    break
+                elif len(self.sql_list) >= 1000:
+                    self.__big_file = True
+                    break
+                tmp_list: List = self._to_send.split(';')
+                self._to_send = "" + tmp_list.pop(-1) + " "
+                for i, sentence in enumerate(tmp_list):
+                    if tmp_pat.match(sentence) is not None:
+                        tmp_list.pop(i)
+                self.sql_list += tmp_list
+                self.__file_offset = f.tell()
 
     @tkp.time_keeper.time_monitor
     def PrtResult(self, result: Sequence[Sequence]) -> None:
@@ -312,7 +292,7 @@ class SQLConnect:
             "USE `Cnt2MySQL_Config`;",
             "SHOW TABLES;"
         ]
-        with open(file_name, "w") as f:
+        with open(file_name, "w", encoding="UTF-8") as f:
             for chart in self.commit_to_MySQL(to_download)[-1].to_numpy():
                 chart_name: str = chart[0]
                 tmp_set = self.commit_to_MySQL([
@@ -326,7 +306,7 @@ class SQLConnect:
                 f.write("\n")
 
     @tkp.time_keeper.time_monitor
-    def commit_to_MySQL(self, sql_list: List[str], if_print: bool = True,
+    def commit_to_MySQL(self, sql_list: List[str] = None, if_print: bool = True,
                         clear_dfSet: bool = True, visualize: bool = True) -> List[pd.DataFrame]:
         """连接数据库并获取结果
 
@@ -351,24 +331,29 @@ class SQLConnect:
             self.dfSet.clear()
         # 拆分成多个单句，一句一句执行
         self.sql_list = sql_list
-        for idx in self.sql_list:
-            if idx is not None:
-                if len(idx) >= 2 and re.match(self.__comment_pat, idx) is not None:
-                    continue
-                if if_print:
-                    print(Fore.GREEN + Style.DIM)
-                    print("sql_sentence:" + idx)
-                    print(Style.RESET_ALL)
-                # 执行SQL
-                try:
-                    cursor.execute(idx)
-                except:
-                    print("执行失败！请查看该句是否有语法错误！")
-                    self._results.append([])
-                    continue
-                self._results.append(cursor.fetchall())
-                if if_print:
-                    self.PrtResult(self._results[-1])
+        multi_read: bool = True
+        while multi_read:
+            if self.__with_file:
+                self.toSqlList()
+            for idx in self.sql_list:
+                if idx is not None:
+                    if len(idx) >= 2 and re.match(self.__comment_pat, idx) is not None:
+                        continue
+                    if if_print:
+                        print(Fore.GREEN + Style.DIM)
+                        print("sql_sentence:" + idx)
+                        print(Style.RESET_ALL)
+                    # 执行SQL
+                    try:
+                        cursor.execute(idx)
+                    except:
+                        print("执行失败！请查看该句是否有语法错误！")
+                        self._results.append([])
+                        continue
+                    self._results.append(cursor.fetchall())
+                    if if_print:
+                        self.PrtResult(self._results[-1])
+            multi_read = self.__big_file
         if visualize:
             into_html_sentence(self._results, self.sql_list)
         # 关闭游标

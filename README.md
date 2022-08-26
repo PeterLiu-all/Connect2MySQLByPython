@@ -28,19 +28,33 @@ python test.py
 ```
 
 ```python
-from Cnt2MySQL import SQL_Connect, Transformer, TimeKeeper
+from Cnt2MySQL import SQLConnect, Transformer
 import Cnt2MySQL
 
 
 # filename是你自己的sql文件名
-sql_obj = SQL_Connect("test.sql")
+sql_obj = SQLConnect("test.sql")
 # title是你的服务器配置名
-sql_obj.readConfig(cfgFile="config.ini", title="Default")
+sql_obj.readConfig(cfgFile="config.ini.tmp", title="Default")
 # 连接了之后自动打印
 # 请在config.ini中配置你的MySQL服务器
 sql_obj.commit_to_MySQL(sql_obj.sql_list, visualize=False)
 sql_obj.PrtAllResult(visualize=True)
 # sql_obj.reset()
+
+# 在连接并获取SQL语句执行结果后
+Transformer.clean_all()
+trf = Transformer(sql_obj.dfSet)
+trf.to_html()
+
+print(sql_obj.run_time)
+# TimeKeeper.calculate_used_time()
+
+# 上传当前配置
+# sql_obj.uploadConfig2MySQL()
+# 下载数据库中全部配置
+# sql_obj.downloadConfig("config.ini.tmp")
+
 ```
 
 你也可以直接使用文件夹中的 test.py 进行测试
@@ -53,8 +67,9 @@ sql_obj.PrtAllResult(visualize=True)
 
 ```python
 # 在连接并获取SQL语句执行结果后
+Transformer.clean_all()
 trf = Transformer(sql_obj.dfSet)
-trf.to_markdown()
+trf.to_html()
 ```
 
 也可以直接在 test.py 测试
@@ -81,11 +96,16 @@ into_html_sentence(sql_obj._results, sql_obj.sql_list, True)
 chmod +x install.sh
 ./install.sh
 
-# 在其他平台可以运行python脚本安装
+# 其他平台通过python脚本实现安装
 # 注意，此方法需要安装Anaconda，因为涉及到虚拟环境的创建与删除
+# 在windows下可以运行install.ps1(PowerShell)或者install.bat(cmd)
+./install.ps1
+# ./install.bat
+# 在其他平台可以手动运行python脚本安装
 python install_venv.py
 conda activate cnt2mysql
 python install.py
+conda deactivate cnt2mysql
 conda remove -n cnt2mysql --all
 ```
 

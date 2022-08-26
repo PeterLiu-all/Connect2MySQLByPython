@@ -15,4 +15,4 @@ input("按任意键以继续...")
 if platform.system() == "Linux":
     system("sudo mv ./dist/cnt2mysql /usr/local/bin/")
 else:
-    shutil.move("."+sep+"dist"+sep+"cnt2mysql"+path.splitext(executable)[-1], path.dirname(executable))
+    shutil.move("." + sep + "dist" + sep + "cnt2mysql" + path.splitext(executable)[-1], path.dirname(executable))

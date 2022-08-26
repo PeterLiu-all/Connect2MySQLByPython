@@ -1,10 +1,9 @@
-
 """
 本文件定义了查询结果网页的基本CSS样式
 """
 
 # 标准默认样式
-Default_CSS:str = '''
+Default_CSS: str = '''
     table{
         width: fit-content;
         height: auto;
@@ -53,7 +52,7 @@ Default_CSS:str = '''
         '''
 
 # 双栏样式
-article_with_navi:str = """
+article_with_navi: str = """
 body{
     display: inline-flexbox;
     background-image: url(https://cdn.staticaly.com/gh/PeterLiu-all/image-hosting@master/20220708/aedrian-oR8z-NvZkOo-unsplash.mqg625zknmo.webp);
@@ -107,8 +106,9 @@ a{
     text-decoration: none;
     color: whitesmoke;
 }"""
-       
-def read_css_file(css_file:str)-> str:
-    with open(css_file, "r") as f:
+
+
+def read_css_file(css_file: str) -> str:
+    with open(css_file, "r", encoding="UTF-8") as f:
         CSS_def = f"<style>\n{f.read}\n<\style>\n"
     return CSS_def

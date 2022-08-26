@@ -5,7 +5,7 @@ from Cnt2MySQL.DefaultJSP import change_date
 本文件定义了查询结果网页的基本HTML框架
 """
 
-#框架头部
+# 框架头部
 DefaultFrame_head = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -25,12 +25,12 @@ DefaultFrame_head = f"""
   <body>"""
 
 # 框架尾部
-DefaultFrame_tail:str = """
+DefaultFrame_tail: str = """
 </body>
 </html>"""
 
 # 双栏中正文头部
-arti_head:str = """
+arti_head: str = """
 <div class="arti">
     <h1 style=\"color: whitesmoke;\">MySQL Results</h1>
     &emsp;&emsp;
@@ -39,28 +39,28 @@ arti_head:str = """
     <div style="padding: 20px;">"""
 
 # 双栏中正文尾部
-arti_tail:str = """
+arti_tail: str = """
 </div>
 </div>"""
 
 # 双栏中导航栏头部
-navi_head:str = """
+navi_head: str = """
     <div class="navi">
     <hr>
     <h1 style=\"color: whitesmoke;\">index</h1>
       <hr>"""
-      
+
 # 双栏中导航栏头部
-navi_tail:str = """
+navi_tail: str = """
 </div>"""
 
 # 每一个书签的框架
 navi_item = [
-"""
-<div class=\"guide\">
-        <a href=\"#""",# 后面跟书签的id
-"""\"><p class=\"navi\">""",# 后面跟书签的标题
-"""</p></a>
-      </div>
-      <hr />"""
+    """
+    <div class=\"guide\">
+            <a href=\"#""",  # 后面跟书签的id
+    """\"><p class=\"navi\">""",  # 后面跟书签的标题
+    """</p></a>
+          </div>
+          <hr />"""
 ]

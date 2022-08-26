@@ -3,8 +3,10 @@ from Cnt2MySQL.cnt2mysql_SQLConnector import SQLConnect
 from Cnt2MySQL.cnt2mysql_transform import Transformer
 from Cnt2MySQL.cnt2mysql_display import into_html_sentence
 from Cnt2MySQL.cnt2mysql_interactive import InteractiveSQLConnect
+import Cnt2MySQL.cnt2mysql_TimeKeeper
 from colorama import Fore, Back, Style
 from sys import executable
+
 # 打印logo
 print(Fore.CYAN + Style.DIM)
 print('''
